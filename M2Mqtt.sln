@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M2Mqtt.NetMf43", "M2Mqtt\M2
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M2Mqtt.WinRT", "M2Mqtt\M2Mqtt.WinRT.csproj", "{0238F0E3-A02B-428D-8A3F-410D8F15BB50}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M2Mqtt.Test", "M2Mqtt.Test\M2Mqtt.Test.csproj", "{1AE84035-B158-49D0-BAFC-C6974BCC2BBB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{0238F0E3-A02B-428D-8A3F-410D8F15BB50}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0238F0E3-A02B-428D-8A3F-410D8F15BB50}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0238F0E3-A02B-428D-8A3F-410D8F15BB50}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AE84035-B158-49D0-BAFC-C6974BCC2BBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AE84035-B158-49D0-BAFC-C6974BCC2BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AE84035-B158-49D0-BAFC-C6974BCC2BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AE84035-B158-49D0-BAFC-C6974BCC2BBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

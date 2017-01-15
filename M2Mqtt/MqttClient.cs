@@ -405,6 +405,11 @@ namespace uPLibrary.Networking.M2Mqtt
             this.session = null;
         }
 #endif
+		public MqttClient(IMqttNetworkChannel channel)
+		{
+			this.Init("localhost", 1883, false, null, null, MqttSslProtocols.None, null, null); // fake init
+			this.channel = channel;
+		}
 
         /// <summary>
         /// MqttClient initialization
