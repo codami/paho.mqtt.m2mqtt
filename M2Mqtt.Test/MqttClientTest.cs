@@ -128,5 +128,41 @@ namespace M2Mqtt.Test
 
 			calls.ShouldEqual(0);
 		}
+
+        [Test()]
+		public void StopsItsActivityImmediatelyWhenConnectionDropped_Issue13()
+		{
+			var channel = Substitute.For<IMqttNetworkChannel>();
+			var client = new MqttClient(channel);
+
+			var connectionAcceptedMessage = new MqttMsgConnack() { ReturnCode = MqttMsgConnack.CONN_ACCEPTED };
+			var messageStream = new MessageStream(client.ProtocolVersion, connectionAcceptedMessage);
+
+			int calls = 0;
+			channel.Receive(Arg.Any<byte[]>()).Returns((obj) =>
+			{
+				++calls;
+				int readBytes = 0;
+				if (messageStream != null)
+				{
+					readBytes = messageStream.Read(obj.Arg<byte[]>());
+					if (readBytes == 0) // EOS reached
+					{
+						Thread.Sleep(TimeSpan.FromSeconds(0.5)); // gives the client some time to setup internals when connection accepted
+						messageStream = null; // remove the stream so next calls will not use it
+					}
+				}
+				return readBytes; // returning 0 will signal connection dropped
+			});
+
+			client.Connect("client1").ShouldEqual(connectionAcceptedMessage.ReturnCode);
+
+			channel.Received(1).Connect(); // make sure the client used mocked channel
+			calls = 0; // clear number of Receive calls 
+
+			Thread.Sleep(TimeSpan.FromSeconds(1)); // give it some time to accumulate Receive calls when defective
+
+			calls.ShouldEqual(0);
+		}
 	}
 }
