@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
 using uPLibrary.Networking.M2Mqtt;
+using uPLibrary.Networking.M2Mqtt.Messages;
 using NSubstitute;
 
 namespace M2Mqtt.Test
@@ -75,6 +76,57 @@ namespace M2Mqtt.Test
 			Thread.Sleep(TimeSpan.FromSeconds(1)); // give it some time to accumulate Receive calls when defective
 
 			channel.DidNotReceive().Receive(Arg.Any<byte[]>());
+		}
+
+        class MessageStream
+        {
+            private byte[] message;
+			private int provided;
+
+			public MessageStream(MqttProtocolVersion v, MqttMsgBase m)
+			{
+				message = m.GetBytes((byte)v);
+				provided = 0;
+			}
+
+			public int Read(byte[] buffer)
+			{
+				var filled = 0;
+				var left = message.Length - provided;
+				if (left > 0)
+				{
+					filled = Math.Min(buffer.Length, left);
+					Array.Copy(message, provided, buffer, 0, filled);
+					provided += filled;
+				}
+				return filled;
+			}
+		}
+
+		[Test()]
+		public void StopsItsActivityAfterConnectAttemptRefused_Issue22()
+		{
+			var channel = Substitute.For<IMqttNetworkChannel>();
+			var client = new MqttClient(channel);
+
+			var connectionRefusedMessage = new MqttMsgConnack() { ReturnCode = MqttMsgConnack.CONN_REFUSED_NOT_AUTHORIZED };
+			var messageStream = new MessageStream(client.ProtocolVersion, connectionRefusedMessage);
+
+			int calls = 0;
+			channel.Receive(Arg.Any<byte[]>()).Returns((obj) =>
+			{
+				++calls;
+				return messageStream.Read(obj.Arg<byte[]>()); // returns 0 when EOS reached which will also signal connection dropped
+			});
+
+			client.Connect("client1").ShouldEqual(connectionRefusedMessage.ReturnCode);
+
+			channel.Received(1).Connect(); // make sure the client used mocked channel
+			calls = 0; // clear number of Receive calls 
+
+			Thread.Sleep(TimeSpan.FromSeconds(1)); // give it some time to accumulate Receive calls when defective
+
+			calls.ShouldEqual(0);
 		}
 	}
 }
