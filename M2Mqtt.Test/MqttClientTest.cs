@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Threading;
 using uPLibrary.Networking.M2Mqtt;
 using NSubstitute;
 
@@ -56,6 +57,24 @@ namespace M2Mqtt.Test
 			}
 
 			messages.ShouldContain(channelErrorMessage);
+		}
+
+		[Test()]
+		public void StopsItsActivityAfterFailedAttemptToConnect_Issue6()
+		{
+			var channel = Substitute.For<IMqttNetworkChannel>();
+			channel.When((obj) => { obj.Receive(Arg.Any<byte[]>()); }).Do((obj) => { throw new IOException("channel error"); });
+
+			var client = new MqttClient(channel);
+
+			Assert.That(() => { client.Connect("client1"); }, Throws.Exception);
+
+			channel.Received(1).Connect(); // make sure the client used mocked channel
+			channel.ClearReceivedCalls();
+
+			Thread.Sleep(TimeSpan.FromSeconds(1)); // give it some time to accumulate Receive calls when defective
+
+			channel.DidNotReceive().Receive(Arg.Any<byte[]>());
 		}
 	}
 }
